@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { Star, Heart, AlertTriangle, Info, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { BodyVisualization } from "./BodyVisualization";
 import { IngredientTable } from "./IngredientTable";
 
-interface ProductData {
+export interface ProductData {
   name: string;
+  image: string;
+  barcode?: string;
+  brand: string;
   category: string;
   healthScore: number;
   ingredients: Array<{
@@ -25,6 +25,8 @@ interface ProductData {
     carbs: number;
     sugar: number;
     salt: number;
+    fiber: number;
+    sodium: number;
   };
   additives: Array<{
     code: string;
@@ -32,9 +34,15 @@ interface ProductData {
     function: string;
     concern: 'low' | 'moderate' | 'high';
   }>;
-  healthSummary: string;
+  healthEffects: {
+    [organ: string]: {
+      level: 'beneficial' | 'neutral' | 'moderate' | 'poor' | 'harmful';
+      description: string;
+    };
+  };
   alternatives: Array<{
     name: string;
+    brand: string;
     healthScore: number;
     reason: string;
   }>;
@@ -46,178 +54,183 @@ interface ProductAnalysisProps {
 }
 
 export const ProductAnalysis = ({ product, onBack }: ProductAnalysisProps) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'ingredients' | 'body' | 'alternatives'>('overview');
-  const [expandedSections, setExpandedSections] = useState<string[]>(['nutrition']);
-
-  const toggleSection = (section: string) => {
-    setExpandedSections(prev => 
-      prev.includes(section) 
-        ? prev.filter(s => s !== section)
-        : [...prev, section]
-    );
-  };
-
   const getHealthScoreColor = (score: number) => {
-    if (score >= 80) return 'health-excellent';
-    if (score >= 60) return 'health-good';
-    if (score >= 40) return 'health-moderate';
-    if (score >= 20) return 'health-poor';
-    return 'health-harmful';
+    if (score >= 80) return 'bg-health-excellent';
+    if (score >= 60) return 'bg-health-good';
+    if (score >= 40) return 'bg-health-moderate';
+    if (score >= 20) return 'bg-health-poor';
+    return 'bg-health-harmful';
   };
 
-  const getHealthScoreBg = (score: number) => {
-    if (score >= 60) return 'bg-gradient-health';
-    if (score >= 40) return 'bg-gradient-warning';
-    return 'bg-gradient-danger';
-  };
+  const alternatives = [
+    {
+      name: "Britannia Marie Gold",
+      brand: "Britannia",
+      healthScore: 75,
+      reason: "Lower sugar content and added vitamins"
+    },
+    {
+      name: "Parle-G Gold",
+      brand: "Parle",
+      healthScore: 70,
+      reason: "Fortified with iron and vitamins"
+    },
+    {
+      name: "Sunfeast Farmlite Digestive",
+      brand: "ITC",
+      healthScore: 80,
+      reason: "High fiber content and no artificial colors"
+    }
+  ];
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <Button variant="outline" onClick={onBack} className="mb-4">
-            ← Back to Search
-          </Button>
-          <h1 className="text-3xl font-bold text-foreground">{product.name}</h1>
-          <Badge variant="secondary" className="mt-2">{product.category}</Badge>
-        </div>
-        
-        <Card className={`${getHealthScoreBg(product.healthScore)} text-white border-0 shadow-health`}>
-          <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold">{product.healthScore}</div>
-            <div className="text-sm opacity-90">Health Score</div>
+    <div className="min-h-screen bg-gradient-bg">
+      <div className="container mx-auto px-4 py-8">
+        <Button 
+          onClick={onBack}
+          variant="outline"
+          className="mb-6 hover:border-primary"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Search
+        </Button>
+
+        {/* Product Header with Image */}
+        <Card className="mb-8 overflow-hidden">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row gap-6 items-start">
+              <div className="w-full md:w-48 h-48 flex-shrink-0">
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full h-full object-cover rounded-lg border"
+                  onError={(e) => {
+                    e.currentTarget.src = '/placeholder.svg';
+                  }}
+                />
+              </div>
+              <div className="flex-1">
+                <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+                <p className="text-lg text-muted-foreground mb-4">{product.brand}</p>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-4 h-4 rounded-full ${getHealthScoreColor(product.healthScore)}`}></div>
+                    <span className="font-medium">Health Score: {product.healthScore}/100</span>
+                  </div>
+                  <span className="text-sm text-muted-foreground">Category: {product.category}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-muted-foreground">Barcode:</span>
+                  <span className="text-sm font-mono">{product.barcode || 'Not available'}</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Nutrition Overview */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-xl">
+              Nutrition <span className="brand-highlight">Facts</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-3 bg-secondary/50 rounded-lg">
+                <div className="text-2xl font-bold text-primary">{product.nutrition.calories}</div>
+                <div className="text-sm text-muted-foreground">Calories</div>
+              </div>
+              <div className="text-center p-3 bg-secondary/50 rounded-lg">
+                <div className="text-2xl font-bold text-primary">{product.nutrition.protein}g</div>
+                <div className="text-sm text-muted-foreground">Protein</div>
+              </div>
+              <div className="text-center p-3 bg-secondary/50 rounded-lg">
+                <div className="text-2xl font-bold text-primary">{product.nutrition.carbs}g</div>
+                <div className="text-sm text-muted-foreground">Carbs</div>
+              </div>
+              <div className="text-center p-3 bg-secondary/50 rounded-lg">
+                <div className="text-2xl font-bold text-primary">{product.nutrition.fat}g</div>
+                <div className="text-sm text-muted-foreground">Fat</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Detailed Ingredient Analysis */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-xl">
+              Ingredient <span className="brand-highlight">Analysis</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <IngredientTable ingredients={product.ingredients} />
+          </CardContent>
+        </Card>
+
+        {/* Additives Section */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-xl">Additives & E-Codes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3">
+              {product.additives.map((additive, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg">
+                  <div>
+                    <div className="font-medium">{additive.code} - {additive.name}</div>
+                    <div className="text-sm text-muted-foreground">{additive.function}</div>
+                  </div>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    additive.concern === 'high' ? 'bg-red-100 text-red-800' :
+                    additive.concern === 'moderate' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-green-100 text-green-800'
+                  }`}>
+                    {additive.concern} concern
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Body Effects Visualization */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-xl">
+              Effects on <span className="brand-highlight">Body</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <BodyVisualization ingredients={product.ingredients} />
+          </CardContent>
+        </Card>
+
+        {/* Healthier Alternatives */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl">
+              Healthier <span className="brand-highlight">Alternatives</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {alternatives.map((alt, index) => (
+                <div key={index} className="p-4 border rounded-lg hover:shadow-health transition-shadow">
+                  <h4 className="font-semibold mb-2">{alt.name}</h4>
+                  <p className="text-sm text-muted-foreground mb-2">{alt.brand}</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className={`w-3 h-3 rounded-full ${getHealthScoreColor(alt.healthScore)}`}></div>
+                    <span className="text-sm font-medium">Score: {alt.healthScore}/100</span>
+                  </div>
+                  <p className="text-sm text-green-600">{alt.reason}</p>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Navigation Tabs */}
-      <div className="flex flex-wrap gap-2 border-b">
-        {[
-          { key: 'overview', label: 'Overview', icon: Info },
-          { key: 'ingredients', label: 'Ingredients', icon: Star },
-          { key: 'body', label: 'Body Effects', icon: Heart },
-          { key: 'alternatives', label: 'Alternatives', icon: AlertTriangle }
-        ].map(({ key, label, icon: Icon }) => (
-          <Button
-            key={key}
-            variant={activeTab === key ? "default" : "outline"}
-            onClick={() => setActiveTab(key as any)}
-            className={activeTab === key ? "bg-gradient-health border-0" : ""}
-          >
-            <Icon className="h-4 w-4 mr-2" />
-            {label}
-          </Button>
-        ))}
-      </div>
-
-      {/* Content Sections */}
-      {activeTab === 'overview' && (
-        <div className="grid gap-6">
-          {/* Health Summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Heart className="h-5 w-5 text-primary" />
-                Health Analysis Summary
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground leading-relaxed">{product.healthSummary}</p>
-            </CardContent>
-          </Card>
-
-          {/* Nutrition Facts */}
-          <Card>
-            <CardHeader className="cursor-pointer" onClick={() => toggleSection('nutrition')}>
-              <CardTitle className="flex items-center justify-between">
-                Nutrition Facts (per 100g)
-                {expandedSections.includes('nutrition') ? <ChevronUp /> : <ChevronDown />}
-              </CardTitle>
-            </CardHeader>
-            {expandedSections.includes('nutrition') && (
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                  {Object.entries(product.nutrition).map(([key, value]) => (
-                    <div key={key} className="text-center p-3 bg-muted rounded-lg">
-                      <div className="text-2xl font-bold text-primary">{value}</div>
-                      <div className="text-sm text-muted-foreground capitalize">
-                        {key === 'carbs' ? 'Carbs' : key}
-                        {key === 'calories' ? '' : key === 'protein' || key === 'fat' || key === 'carbs' || key === 'sugar' ? 'g' : key === 'salt' ? 'mg' : ''}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            )}
-          </Card>
-
-          {/* Additives */}
-          <Card>
-            <CardHeader className="cursor-pointer" onClick={() => toggleSection('additives')}>
-              <CardTitle className="flex items-center justify-between">
-                Additives & E-Codes
-                {expandedSections.includes('additives') ? <ChevronUp /> : <ChevronDown />}
-              </CardTitle>
-            </CardHeader>
-            {expandedSections.includes('additives') && (
-              <CardContent>
-                <div className="space-y-3">
-                  {product.additives.map((additive, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                      <div>
-                        <div className="font-medium">{additive.code} - {additive.name}</div>
-                        <div className="text-sm text-muted-foreground">{additive.function}</div>
-                      </div>
-                      <Badge 
-                        variant={
-                          additive.concern === 'high' ? 'destructive' : 
-                          additive.concern === 'moderate' ? 'default' : 
-                          'secondary'
-                        }
-                      >
-                        {additive.concern} concern
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            )}
-          </Card>
-        </div>
-      )}
-
-      {activeTab === 'ingredients' && (
-        <IngredientTable ingredients={product.ingredients} />
-      )}
-
-      {activeTab === 'body' && (
-        <BodyVisualization ingredients={product.ingredients} />
-      )}
-
-      {activeTab === 'alternatives' && (
-        <div className="grid gap-4">
-          <h3 className="text-xl font-semibold">Healthier Alternatives</h3>
-          {product.alternatives.map((alt, index) => (
-            <Card key={index} className="hover:shadow-health transition-all duration-300">
-              <CardContent className="p-4 flex items-center justify-between">
-                <div>
-                  <div className="font-semibold text-lg">{alt.name}</div>
-                  <div className="text-sm text-muted-foreground">{alt.reason}</div>
-                </div>
-                <div className="text-right">
-                  <div className={`text-2xl font-bold text-${getHealthScoreColor(alt.healthScore)}`}>
-                    {alt.healthScore}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Health Score</div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
     </div>
   );
 };
-
-export type { ProductData };
