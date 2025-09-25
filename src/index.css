@@ -125,10 +125,6 @@
   }
 
   body {
-    @apply bg-background text-foreground font-inter;
-  }
-  
-  .brand-highlight {
-    @apply text-primary font-semibold;
+    @apply bg-background text-foreground;
   }
 }
