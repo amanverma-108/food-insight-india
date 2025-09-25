@@ -47,6 +47,18 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        health: {
+          excellent: "hsl(var(--health-excellent))",
+          good: "hsl(var(--health-good))",
+          moderate: "hsl(var(--health-moderate))",
+          poor: "hsl(var(--health-poor))",
+          harmful: "hsl(var(--health-harmful))",
+        },
+        effect: {
+          beneficial: "hsl(var(--effect-beneficial))",
+          neutral: "hsl(var(--effect-neutral))",
+          harmful: "hsl(var(--effect-harmful))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -57,6 +69,21 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+      },
+      backgroundImage: {
+        'gradient-health': 'var(--gradient-health)',
+        'gradient-warning': 'var(--gradient-warning)',
+        'gradient-danger': 'var(--gradient-danger)',
+        'gradient-bg': 'var(--gradient-bg)',
+      },
+      boxShadow: {
+        'health': 'var(--shadow-health)',
+        'card-custom': 'var(--shadow-card)',
+        'elevated': 'var(--shadow-elevated)',
+      },
+      transitionProperty: {
+        'smooth': 'var(--transition-smooth)',
+        'bounce': 'var(--transition-bounce)',
       },
       borderRadius: {
         lg: "var(--radius)",

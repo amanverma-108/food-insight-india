@@ -2,41 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Health-focused design system for food analysis app */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 120 20% 98%;
+    --foreground: 200 15% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 200 15% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 200 15% 12%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 120 30% 95%;
+    --secondary-foreground: 200 15% 15%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 120 15% 96%;
+    --muted-foreground: 200 10% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 160 50% 90%;
+    --accent-foreground: 160 84% 25%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 120 20% 90%;
+    --input: 120 20% 96%;
+    --ring: 160 84% 39%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+
+    /* Health status colors */
+    --health-excellent: 145 80% 42%;
+    --health-good: 85 85% 55%;  
+    --health-moderate: 45 95% 60%;
+    --health-poor: 15 90% 65%;
+    --health-harmful: 0 84% 60%;
+
+    /* Organ effect colors */
+    --effect-beneficial: 145 80% 42%;
+    --effect-neutral: 45 15% 70%;
+    --effect-harmful: 0 84% 60%;
+
+    /* Gradients */
+    --gradient-health: linear-gradient(135deg, hsl(160 84% 39%), hsl(145 80% 42%));
+    --gradient-warning: linear-gradient(135deg, hsl(45 95% 60%), hsl(15 90% 65%));
+    --gradient-danger: linear-gradient(135deg, hsl(15 90% 65%), hsl(0 84% 60%));
+    --gradient-bg: linear-gradient(180deg, hsl(120 30% 99%), hsl(120 20% 96%));
+
+    /* Shadows */
+    --shadow-health: 0 4px 20px hsl(160 84% 39% / 0.15);
+    --shadow-card: 0 2px 8px hsl(200 15% 12% / 0.08);
+    --shadow-elevated: 0 8px 32px hsl(200 15% 12% / 0.12);
+
+    /* Animation timings */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
     --sidebar-background: 0 0% 98%;
 
