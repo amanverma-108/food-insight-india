@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { Sparkles, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,13 +9,42 @@ interface Message {
   text: string;
 }
 
+const foodKeywords = [
+  "sugar", "salt", "fat", "oil", "palm", "protein", "carb", "fiber", "vitamin",
+  "mineral", "calorie", "sodium", "cholesterol", "trans", "saturated", "msg",
+  "preservative", "additive", "emulsifier", "colorant", "sweetener", "aspartame",
+  "caffeine", "gluten", "lactose", "organic", "processed", "ingredient", "nutrition",
+  "health", "food", "eat", "diet", "snack", "biscuit", "noodle", "drink", "beverage",
+  "cereal", "bread", "milk", "cheese", "butter", "cream", "chocolate", "candy",
+  "chip", "cookie", "oreo", "maggi", "maida", "atta", "ghee", "paneer",
+  "e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9", "tartrazine", "tbhq",
+  "bha", "bht", "lecithin", "guar", "xanthan", "citric", "acetic", "benzoate",
+  "sorbate", "nitrate", "nitrite", "sulfite", "carrageenan", "pectin",
+  "alternative", "safer", "healthy", "unhealthy", "harmful", "beneficial", "risk",
+  "cancer", "diabetes", "heart", "liver", "kidney", "obesity", "allergy",
+];
+
+const isFoodRelated = (query: string): boolean => {
+  const lower = query.toLowerCase();
+  return foodKeywords.some((kw) => lower.includes(kw));
+};
+
+const OFF_TOPIC_RESPONSE =
+  "🚫 I'm **FoodInsight AI**, and I specialize exclusively in food products, ingredients, additives, nutrition, and health effects.\n\nI can't help with that topic, but feel free to ask me things like:\n- *\"Is palm oil harmful?\"*\n- *\"What does E102 do?\"*\n- *\"What are healthier alternatives to Maggi?\"*";
+
 const sampleResponses: Record<string, string> = {
   sugar:
-    "Sugar (sucrose) provides quick energy but excessive intake is linked to obesity, type 2 diabetes, and tooth decay. The WHO recommends limiting added sugars to less than 10% of daily calories. In packaged foods, look for hidden names like dextrose, maltose, and high-fructose corn syrup.",
+    "**🔬 Ingredient Overview**\nSugar (sucrose) is a simple carbohydrate used as a sweetener in most packaged foods. It appears under many names: dextrose, maltose, high-fructose corn syrup, and invert sugar.\n\n**⚠️ Health Impact**\nExcessive intake is linked to obesity, type 2 diabetes, tooth decay, fatty liver disease, and chronic inflammation. The WHO recommends limiting added sugars to <10% of daily calories (~25g).\n\n**🔴 Risk Level: High** (when consumed in excess)\n\n**✅ Safer Alternatives**\n- **Jaggery** – contains iron and minerals (use sparingly)\n- **Stevia** – zero-calorie natural sweetener\n- **Dates/fruit purée** – natural sweetness with fiber",
   "palm oil":
-    "Palm oil is high in saturated fat, which can raise LDL cholesterol and increase cardiovascular risk. It's widely used in Indian snacks for its stability and low cost. Alternatives like sunflower or rice bran oil are generally healthier choices.",
+    "**🔬 Ingredient Overview**\nPalm oil is a vegetable oil high in saturated fat, widely used in Indian snacks and packaged foods for its low cost and heat stability.\n\n**⚠️ Health Impact**\nRaises LDL (bad) cholesterol, increasing cardiovascular disease risk. Refined palm oil loses most antioxidants. Also linked to environmental concerns (deforestation).\n\n**🔴 Risk Level: Moderate–High** (with regular consumption)\n\n**✅ Safer Alternatives**\n- **Rice bran oil** – balanced fatty acid profile\n- **Sunflower oil** – lower in saturated fat\n- **Mustard oil** – traditional, heart-healthy option",
+  msg:
+    "**🔬 Ingredient Overview**\nMonosodium Glutamate (MSG / E621) is a flavor enhancer that adds umami taste. Commonly found in instant noodles, chips, and Chinese food.\n\n**⚠️ Health Impact**\nGenerally recognized as safe (GRAS) by FDA. Some sensitive individuals may experience headaches, flushing, or nausea (\"Chinese Restaurant Syndrome\"). No strong evidence of long-term harm in moderate amounts.\n\n**🟡 Risk Level: Low–Moderate**\n\n**✅ Safer Alternatives**\n- **Nutritional yeast** – natural umami flavor\n- **Mushroom powder** – rich umami without additives\n- **Tamari/soy sauce** – natural fermented flavor",
+  tartrazine:
+    "**🔬 Ingredient Overview**\nTartrazine (E102) is a synthetic yellow azo dye used in snacks, drinks, sweets, and instant noodles to add bright color.\n\n**⚠️ Health Impact**\nLinked to hyperactivity in children, allergic reactions (especially in aspirin-sensitive individuals), and potential attention disorders. Banned or restricted in several European countries.\n\n**🔴 Risk Level: Moderate–High** (especially for children)\n\n**✅ Safer Alternatives**\n- **Turmeric extract** – natural yellow color with anti-inflammatory benefits\n- **Beta-carotene** – natural orange-yellow pigment\n- Products labeled \"No artificial colors\"",
+  maida:
+    "**🔬 Ingredient Overview**\nMaida (refined wheat flour) is stripped of bran and germ, leaving mainly starch. It's the base of most Indian packaged biscuits, breads, and noodles.\n\n**⚠️ Health Impact**\nHigh glycemic index causes rapid blood sugar spikes. Lacks fiber, vitamins, and minerals. Regular consumption linked to insulin resistance, weight gain, and digestive issues.\n\n**🟡 Risk Level: Moderate**\n\n**✅ Safer Alternatives**\n- **Whole wheat atta** – retains fiber and nutrients\n- **Ragi (finger millet) flour** – high in calcium and fiber\n- **Multigrain flour** – balanced nutrition profile",
   default:
-    "That's a great question! In general, always check ingredient lists for excessive sugar, sodium, and trans fats. Look for whole-grain, high-fiber options and prefer products with shorter, more recognizable ingredient lists.",
+    "**🔬 Ingredient Overview**\nGreat question! Here's some general guidance on evaluating packaged food products.\n\n**⚠️ Health Impact**\nAlways check for excessive sugar (>10g/serving), sodium (>400mg/serving), and trans fats (any amount). Prefer products with shorter, recognizable ingredient lists. Whole-grain and high-fiber options are generally better.\n\n**🟡 Risk Level: Varies by product**\n\n**✅ Safer Alternatives**\n- Choose products with the **FSSAI** mark\n- Look for **\"No added sugar\"** and **\"No artificial colors\"** labels\n- Compare nutrition labels side-by-side before buying",
 };
 
 export const AiQuerySection = () => {
@@ -29,10 +59,15 @@ export const AiQuerySection = () => {
     setInput("");
     setTyping(true);
 
-    const key = Object.keys(sampleResponses).find((k) =>
-      q.toLowerCase().includes(k)
-    );
-    const answer = sampleResponses[key ?? "default"];
+    let answer: string;
+    if (!isFoodRelated(q)) {
+      answer = OFF_TOPIC_RESPONSE;
+    } else {
+      const key = Object.keys(sampleResponses).find((k) =>
+        q.toLowerCase().includes(k)
+      );
+      answer = sampleResponses[key ?? "default"];
+    }
 
     setTimeout(() => {
       setMessages((m) => [...m, { role: "ai", text: answer }]);
@@ -74,9 +109,9 @@ export const AiQuerySection = () => {
                       <Sparkles className="h-4 w-4 text-primary" />
                     </div>
                   )}
-                  <p className="text-sm leading-relaxed text-foreground">
-                    {msg.text}
-                  </p>
+                  <div className="text-sm leading-relaxed text-foreground prose prose-sm prose-headings:text-foreground prose-strong:text-foreground prose-p:text-foreground max-w-none">
+                    <ReactMarkdown>{msg.text}</ReactMarkdown>
+                  </div>
                 </CardContent>
               </Card>
             ))}
