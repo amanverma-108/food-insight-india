@@ -111,7 +111,7 @@ export const AiQuerySection = () => {
   };
 
   return (
-    <section className="px-4 py-16 md:py-24 bg-muted/40">
+    <section className="px-4 py-10 md:py-14 bg-muted/40">
       <div className="max-w-3xl mx-auto text-center">
         <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 mb-4">
           <Sparkles className="h-4 w-4 text-primary" />

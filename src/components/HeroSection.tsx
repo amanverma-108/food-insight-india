@@ -49,7 +49,7 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-accent/40 via-background to-background" />
 
-      <div className="relative z-10 flex flex-col items-center px-4 pt-20 pb-16 md:pt-32 md:pb-24">
+      <div className="relative z-10 flex flex-col items-center px-4 pt-16 pb-10 md:pt-24 md:pb-14">
         {/* Title */}
         <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-foreground text-center">
           Food<span className="text-primary">Insight</span>

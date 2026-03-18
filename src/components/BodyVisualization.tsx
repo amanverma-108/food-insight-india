@@ -18,6 +18,7 @@ interface BodyVisualizationProps {
 interface OrganData {
   name: string;
   position: { x: number; y: number };
+  labelOffset: { dx: number; dy: number };
   ingredients: Array<{
     name: string;
     effect: string;
@@ -28,46 +29,51 @@ interface OrganData {
 export const BodyVisualization = ({ ingredients }: BodyVisualizationProps) => {
   const [selectedOrgan, setSelectedOrgan] = useState<string | null>(null);
 
-  // Map ingredients to organs
   const organData: { [key: string]: OrganData } = {
     brain: {
       name: "Brain",
-      position: { x: 50, y: 15 },
+      position: { x: 50, y: 12 },
+      labelOffset: { dx: 0, dy: -7 },
       ingredients: []
     },
     heart: {
       name: "Heart",
-      position: { x: 45, y: 35 },
+      position: { x: 42, y: 33 },
+      labelOffset: { dx: -12, dy: 0 },
       ingredients: []
     },
     liver: {
       name: "Liver",
-      position: { x: 60, y: 40 },
-      ingredients: []
-    },
-    kidneys: {
-      name: "Kidneys",
-      position: { x: 55, y: 50 },
-      ingredients: []
-    },
-    pancreas: {
-      name: "Pancreas",
-      position: { x: 50, y: 45 },
+      position: { x: 60, y: 38 },
+      labelOffset: { dx: 12, dy: 0 },
       ingredients: []
     },
     stomach: {
       name: "Stomach",
-      position: { x: 48, y: 42 },
+      position: { x: 42, y: 45 },
+      labelOffset: { dx: -13, dy: 0 },
+      ingredients: []
+    },
+    pancreas: {
+      name: "Pancreas",
+      position: { x: 50, y: 50 },
+      labelOffset: { dx: 0, dy: 5 },
+      ingredients: []
+    },
+    kidneys: {
+      name: "Kidneys",
+      position: { x: 60, y: 52 },
+      labelOffset: { dx: 12, dy: 0 },
       ingredients: []
     },
     intestines: {
       name: "Intestines",
-      position: { x: 50, y: 55 },
+      position: { x: 50, y: 62 },
+      labelOffset: { dx: 0, dy: 6 },
       ingredients: []
     }
   };
 
-  // Populate organ data with ingredients
   ingredients.forEach(ingredient => {
     ingredient.affectedOrgans.forEach(organName => {
       const organKey = organName.toLowerCase();
@@ -82,19 +88,16 @@ export const BodyVisualization = ({ ingredients }: BodyVisualizationProps) => {
   });
 
   const getOrganColor = (organ: OrganData) => {
-    if (organ.ingredients.length === 0) return '#e5e7eb'; // neutral gray
-    
+    if (organ.ingredients.length === 0) return '#e5e7eb';
     const harmfulCount = organ.ingredients.filter(i => i.rating === 'harmful').length;
     const beneficialCount = organ.ingredients.filter(i => i.rating === 'beneficial').length;
-    
-    if (harmfulCount > beneficialCount) return '#ef4444'; // red
-    if (beneficialCount > harmfulCount) return '#10b981'; // green
-    return '#f59e0b'; // yellow
+    if (harmfulCount > beneficialCount) return '#ef4444';
+    if (beneficialCount > harmfulCount) return '#10b981';
+    return '#f59e0b';
   };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Body Diagram */}
       <Card className="h-fit">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -103,56 +106,55 @@ export const BodyVisualization = ({ ingredients }: BodyVisualizationProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="relative bg-gradient-to-b from-muted/20 to-muted/40 rounded-lg p-8 min-h-[500px]">
-            {/* Simple Body SVG */}
-            <svg
-              viewBox="0 0 100 100"
-              className="w-full h-full max-h-[500px] mx-auto"
-            >
-              {/* Body outline */}
-              <ellipse cx="50" cy="85" rx="15" ry="12" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="0.5" />
-              <ellipse cx="50" cy="65" rx="18" ry="15" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="0.5" />
-              <ellipse cx="50" cy="45" rx="16" ry="18" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="0.5" />
-              <circle cx="50" cy="15" r="12" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="0.5" />
-              
-              {/* Organs */}
-              {Object.entries(organData).map(([key, organ]) => (
-                <g key={key}>
-                  <circle
-                    cx={organ.position.x}
-                    cy={organ.position.y}
-                    r="4"
-                    fill={getOrganColor(organ)}
-                    stroke="#ffffff"
-                    strokeWidth="0.5"
-                    className="cursor-pointer hover:r-5 transition-all duration-200"
-                    onClick={() => setSelectedOrgan(selectedOrgan === key ? null : key)}
-                  />
-                  <text
-                    x={organ.position.x}
-                    y={organ.position.y - 6}
-                    textAnchor="middle"
-                    className="text-xs fill-current text-foreground font-medium"
-                    style={{ fontSize: '2px' }}
-                  >
-                    {organ.name}
-                  </text>
-                </g>
-              ))}
+          <div className="relative bg-gradient-to-b from-muted/20 to-muted/40 rounded-lg p-4 min-h-[500px]">
+            <svg viewBox="0 0 100 80" className="w-full h-full max-h-[460px] mx-auto">
+              {/* Body silhouette */}
+              <ellipse cx="50" cy="12" rx="8" ry="9" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="0.4" />
+              <rect x="43" y="20" width="14" height="4" rx="2" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="0.3" />
+              <ellipse cx="50" cy="40" rx="14" ry="18" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="0.4" />
+              <ellipse cx="50" cy="68" rx="6" ry="10" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="0.3" />
+              <ellipse cx="42" cy="68" rx="5" ry="10" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="0.3" />
+              <ellipse cx="58" cy="68" rx="5" ry="10" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="0.3" />
+
+              {Object.entries(organData).map(([key, organ]) => {
+                const isSelected = selectedOrgan === key;
+                return (
+                  <g key={key} className="cursor-pointer" onClick={() => setSelectedOrgan(selectedOrgan === key ? null : key)}>
+                    <circle
+                      cx={organ.position.x}
+                      cy={organ.position.y}
+                      r={isSelected ? 4.5 : 3.5}
+                      fill={getOrganColor(organ)}
+                      stroke={isSelected ? "#fff" : "rgba(255,255,255,0.6)"}
+                      strokeWidth={isSelected ? 1 : 0.5}
+                      style={{ transition: "r 0.2s, stroke-width 0.2s" }}
+                    />
+                    <text
+                      x={organ.position.x + organ.labelOffset.dx}
+                      y={organ.position.y + organ.labelOffset.dy}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      className="fill-foreground pointer-events-none select-none"
+                      style={{ fontSize: '2.8px', fontWeight: isSelected ? 700 : 500 }}
+                    >
+                      {organ.name}
+                    </text>
+                  </g>
+                );
+              })}
             </svg>
-            
-            {/* Legend */}
-            <div className="flex justify-center gap-4 mt-4">
+
+            <div className="flex justify-center gap-4 mt-3">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-effect-beneficial"></div>
+                <div className="w-3 h-3 rounded-full bg-[hsl(145,80%,42%)]" />
                 <span className="text-xs">Beneficial</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-effect-neutral"></div>
+                <div className="w-3 h-3 rounded-full bg-[hsl(45,95%,60%)]" />
                 <span className="text-xs">Neutral</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-effect-harmful"></div>
+                <div className="w-3 h-3 rounded-full bg-[hsl(0,84%,60%)]" />
                 <span className="text-xs">Harmful</span>
               </div>
             </div>
@@ -160,7 +162,6 @@ export const BodyVisualization = ({ ingredients }: BodyVisualizationProps) => {
         </CardContent>
       </Card>
 
-      {/* Organ Details */}
       <Card>
         <CardHeader>
           <CardTitle>
@@ -175,11 +176,11 @@ export const BodyVisualization = ({ ingredients }: BodyVisualizationProps) => {
                   <div key={index} className="p-4 border rounded-lg">
                     <div className="flex items-start justify-between mb-2">
                       <h4 className="font-semibold">{ingredient.name}</h4>
-                      <Badge 
+                      <Badge
                         className={
-                          ingredient.rating === 'beneficial' ? 'bg-effect-beneficial text-white' :
-                          ingredient.rating === 'harmful' ? 'bg-effect-harmful text-white' :
-                          'bg-effect-neutral text-foreground'
+                          ingredient.rating === 'beneficial' ? 'bg-[hsl(145,80%,42%)] text-white' :
+                          ingredient.rating === 'harmful' ? 'bg-[hsl(0,84%,60%)] text-white' :
+                          'bg-[hsl(45,95%,60%)] text-foreground'
                         }
                       >
                         {ingredient.rating}

@@ -23,7 +23,7 @@ const features = [
 ];
 
 export const FeaturesSection = () => (
-  <section className="px-4 py-16 md:py-24">
+  <section className="px-4 py-10 md:py-14">
     <div className="max-w-5xl mx-auto text-center">
       <h2 className="text-3xl md:text-4xl font-bold text-foreground">
         Premium <span className="text-primary">Features</span>
