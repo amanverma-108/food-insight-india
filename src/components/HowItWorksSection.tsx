@@ -7,7 +7,7 @@ const steps = [
 ];
 
 export const HowItWorksSection = () => (
-  <section className="px-4 py-16 md:py-24 bg-muted/40">
+  <section className="px-4 py-10 md:py-14 bg-muted/40">
     <div className="max-w-4xl mx-auto text-center">
       <h2 className="text-3xl md:text-4xl font-bold text-foreground">
         How It <span className="text-primary">Works</span>
