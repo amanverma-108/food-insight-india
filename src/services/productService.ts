@@ -100,3 +100,34 @@ export async function getTrendingProducts(): Promise<string[]> {
   }
   return [];
 }
+
+async function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      resolve(result.split(",")[1]);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+export async function identifyProductFromImage(file: File): Promise<string | null> {
+  const imageBase64 = await fileToBase64(file);
+  const mimeType = file.type || "image/jpeg";
+
+  const { data, error } = await supabase.functions.invoke("identify-product", {
+    body: { imageBase64, mimeType },
+  });
+
+  if (error) {
+    throw new Error(error.message || "Failed to identify product");
+  }
+
+  if (data?.error) {
+    throw new Error(data.error);
+  }
+
+  return data?.productName || null;
+}
