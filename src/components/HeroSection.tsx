@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 
 interface HeroSectionProps {
   onSearch: (query: string) => void;
+  suggestions?: string[];
 }
 
 export const HeroSection = ({ onSearch }: HeroSectionProps) => {
