@@ -42,6 +42,7 @@ interface ProductData {
 interface ProductAnalysisProps {
   product: ProductData;
   onBack: () => void;
+  onAlternativeClick?: (name: string) => void;
 }
 
 const NUTRITION_META: Record<string, { label: string; unit: string; dailyMax: number; barColor: string }> = {
@@ -91,7 +92,7 @@ const getAltBorderColor = (score: number) => {
   return "border-l-[#e05a3a]";
 };
 
-export const ProductAnalysis = ({ product, onBack }: ProductAnalysisProps) => {
+export const ProductAnalysis = ({ product, onBack, onAlternativeClick }: ProductAnalysisProps) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'ingredients' | 'body' | 'alternatives'>('overview');
   const [expandedSections, setExpandedSections] = useState<string[]>(['nutrition']);
 
@@ -251,15 +252,23 @@ export const ProductAnalysis = ({ product, onBack }: ProductAnalysisProps) => {
       {activeTab === 'alternatives' && (
         <div className="grid gap-4">
           <h3 className="text-xl font-semibold">Healthier Alternatives</h3>
+          <p className="text-xs text-muted-foreground -mt-2">Click any alternative to see its full analysis</p>
           {product.alternatives.map((alt, index) => {
             const color = getAltScoreColor(alt.healthScore);
             const label = getHealthScoreLabel(alt.healthScore);
             return (
-              <Card key={index} className={`hover:shadow-health transition-all duration-300 border-l-4 ${getAltBorderColor(alt.healthScore)}`}>
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div>
+              <Card
+                key={index}
+                className={`hover:shadow-health transition-all duration-300 border-l-4 ${getAltBorderColor(alt.healthScore)} cursor-pointer hover:border-primary hover:-translate-y-0.5`}
+                onClick={() => onAlternativeClick?.(alt.name)}
+              >
+                <CardContent className="p-4 flex items-center justify-between relative">
+                  <div className="pr-8">
                     <div className="font-semibold text-lg">{alt.name}</div>
                     <div className="text-sm text-muted-foreground">{alt.reason}</div>
+                    <span className="inline-block mt-2 text-[10px] text-primary opacity-70">
+                      Tap to analyse →
+                    </span>
                   </div>
                   <div className="text-right flex flex-col items-end gap-1">
                     <div className="text-2xl font-bold" style={{ color }}>
@@ -276,6 +285,7 @@ export const ProductAnalysis = ({ product, onBack }: ProductAnalysisProps) => {
                       Health Score
                     </div>
                   </div>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-primary opacity-40 text-lg">→</div>
                 </CardContent>
               </Card>
             );
