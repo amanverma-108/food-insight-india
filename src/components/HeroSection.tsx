@@ -1,48 +1,32 @@
 import { useState, useRef } from "react";
-import { Search, Camera, X } from "lucide-react";
+import { Search, Camera, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface HeroSectionProps {
   onSearch: (query: string) => void;
+  onCameraIdentify?: (file: File) => void;
   suggestions?: string[];
 }
 
-export const HeroSection = ({ onSearch, suggestions }: HeroSectionProps) => {
+export const HeroSection = ({ onSearch, onCameraIdentify, suggestions }: HeroSectionProps) => {
   const [query, setQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
-  const [scanning, setScanning] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const [cameraLoading, setCameraLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSearch = () => {
     if (query.trim()) onSearch(query.trim());
   };
 
-  const startCamera = async () => {
-    try {
-      setScanning(true);
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-      }
-      // Simulate barcode detection after 3s
-      setTimeout(() => {
-        setQuery("8901030803987");
-        stopCamera();
-      }, 3000);
-    } catch {
-      setScanning(false);
-    }
+  const handleCameraClick = () => {
+    fileInputRef.current?.click();
   };
 
-  const stopCamera = () => {
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-    streamRef.current = null;
-    setScanning(false);
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !onCameraIdentify) return;
+    e.target.value = "";
+    onCameraIdentify(file);
   };
 
   return (
@@ -79,12 +63,29 @@ export const HeroSection = ({ onSearch, suggestions }: HeroSectionProps) => {
               placeholder="Enter product name..."
               className="flex-1 bg-transparent text-base md:text-lg outline-none placeholder:text-muted-foreground text-foreground"
             />
+
+            {/* Hidden file input for camera */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+
             <button
-              onClick={startCamera}
-              className="p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
-              aria-label="Scan barcode"
+              onClick={handleCameraClick}
+              disabled={cameraLoading}
+              className="p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-accent transition-colors disabled:opacity-50"
+              aria-label="Take a photo to identify the product"
+              title="Take a photo to identify the product"
             >
-              <Camera className="h-5 w-5" />
+              {cameraLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Camera className="h-5 w-5" />
+              )}
             </button>
             <Button
               onClick={handleSearch}
@@ -108,27 +109,6 @@ export const HeroSection = ({ onSearch, suggestions }: HeroSectionProps) => {
           ))}
         </div>
       </div>
-
-      {/* Camera overlay */}
-      {scanning && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-foreground/80">
-          <div className="relative w-full max-w-sm rounded-2xl overflow-hidden bg-card">
-            <video ref={videoRef} className="w-full aspect-[4/3] object-cover" />
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-56 h-36 border-2 border-primary rounded-lg animate-pulse" />
-            </div>
-            <button
-              onClick={stopCamera}
-              className="absolute top-3 right-3 p-2 rounded-full bg-card/80 text-foreground"
-            >
-              <X className="h-5 w-5" />
-            </button>
-            <p className="text-center py-3 text-sm text-muted-foreground">
-              Scanning for barcode…
-            </p>
-          </div>
-        </div>
-      )}
     </section>
   );
 };
