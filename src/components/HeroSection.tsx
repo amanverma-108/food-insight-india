@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 
 interface HeroSectionProps {
   onSearch: (query: string) => void;
+  suggestions?: string[];
 }
 
-export const HeroSection = ({ onSearch }: HeroSectionProps) => {
+export const HeroSection = ({ onSearch, suggestions }: HeroSectionProps) => {
   const [query, setQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -96,7 +97,7 @@ export const HeroSection = ({ onSearch }: HeroSectionProps) => {
 
         {/* Quick tags */}
         <div className="mt-5 flex flex-wrap justify-center gap-2">
-          {["Oreo", "Maggi", "Parle-G", "Lays Chips"].map((s) => (
+          {(suggestions || ["Oreo", "Maggi", "Parle-G", "Lays Chips"]).map((s) => (
             <button
               key={s}
               onClick={() => onSearch(s)}

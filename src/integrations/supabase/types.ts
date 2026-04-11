@@ -14,7 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      products: {
+        Row: {
+          additives: Json | null
+          alternatives: Json | null
+          body_effects: Json | null
+          category: string | null
+          created_at: string | null
+          health_rating: string | null
+          health_score: number | null
+          health_summary: string | null
+          id: string
+          ingredients: Json | null
+          nutrition_facts: Json | null
+          product_name: string
+          product_name_normalized: string
+          search_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          additives?: Json | null
+          alternatives?: Json | null
+          body_effects?: Json | null
+          category?: string | null
+          created_at?: string | null
+          health_rating?: string | null
+          health_score?: number | null
+          health_summary?: string | null
+          id?: string
+          ingredients?: Json | null
+          nutrition_facts?: Json | null
+          product_name: string
+          product_name_normalized: string
+          search_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          additives?: Json | null
+          alternatives?: Json | null
+          body_effects?: Json | null
+          category?: string | null
+          created_at?: string | null
+          health_rating?: string | null
+          health_score?: number | null
+          health_summary?: string | null
+          id?: string
+          ingredients?: Json | null
+          nutrition_facts?: Json | null
+          product_name?: string
+          product_name_normalized?: string
+          search_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      search_logs: {
+        Row: {
+          cache_hit: boolean | null
+          id: string
+          product_name: string
+          searched_at: string | null
+        }
+        Insert: {
+          cache_hit?: boolean | null
+          id?: string
+          product_name: string
+          searched_at?: string | null
+        }
+        Update: {
+          cache_hit?: boolean | null
+          id?: string
+          product_name?: string
+          searched_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
