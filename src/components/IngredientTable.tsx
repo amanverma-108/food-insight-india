@@ -8,6 +8,8 @@ interface Ingredient {
   healthEffect: string;
   rating: 'beneficial' | 'neutral' | 'harmful';
   affectedOrgans: string[];
+  concernLevel?: string;
+  dailyLimitContext?: string;
 }
 
 interface IngredientTableProps {
@@ -32,7 +34,6 @@ export const IngredientTable = ({ ingredients }: IngredientTableProps) => {
       neutral: 'bg-effect-neutral text-foreground',
       harmful: 'bg-effect-harmful text-white'
     };
-    
     return (
       <Badge className={variants[rating]}>
         {rating.charAt(0).toUpperCase() + rating.slice(1)}
@@ -70,7 +71,13 @@ export const IngredientTable = ({ ingredients }: IngredientTableProps) => {
                     {ingredient.function}
                   </td>
                   <td className="p-3 text-sm max-w-xs">
-                    {ingredient.healthEffect}
+                    <div>{ingredient.healthEffect}</div>
+                    {/* Daily limit context */}
+                    {ingredient.dailyLimitContext && ingredient.dailyLimitContext !== "N/A" && (
+                      <div className="mt-1.5 inline-block text-[11px] text-[#92400e] bg-[#fffbeb] px-2 py-0.5 rounded">
+                        📊 {ingredient.dailyLimitContext}
+                      </div>
+                    )}
                   </td>
                   <td className="p-3">
                     {getRatingBadge(ingredient.rating)}
