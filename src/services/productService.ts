@@ -8,20 +8,37 @@ interface DBProduct {
   health_score: number;
   health_rating: string;
   health_summary: string;
+  brand?: string;
+  barcode?: string;
+  off_verified?: boolean;
+  nutrition_source?: string;
+  nova_group?: number;
+  nutriscore_grade?: string;
+  image_url?: string;
+  raw_ingredients_text?: string;
+  key_concerns?: string[];
+  consumption_advice?: string;
   ingredients: Array<{
     name: string;
     function: string;
     health_effect: string;
     rating: 'harmful' | 'neutral' | 'beneficial';
     affected_organs: string[];
+    concern_level?: string;
+    daily_limit_context?: string;
   }>;
   nutrition_facts: {
     calories: number;
     fat: number;
+    saturated_fat?: number;
+    trans_fat?: number;
     protein: number;
     carbohydrates: number;
     sugar: number;
+    added_sugar?: number;
     salt: number;
+    sodium?: number;
+    fiber?: number;
   };
   additives: Array<{
     code: string;
@@ -29,11 +46,21 @@ interface DBProduct {
     function: string;
     concern_level: 'low' | 'medium' | 'high';
   }>;
+  threshold_warnings?: Array<{
+    nutrient: string;
+    value: number;
+    unit: string;
+    level: 'high' | 'very_high' | 'low';
+    message: string;
+    who_guideline: string;
+    percent_of_daily: number;
+  }>;
   alternatives: Array<{
     name: string;
     health_score: number;
     health_rating: string;
     reason: string;
+    what_is_better?: string[];
   }>;
 }
 
@@ -43,20 +70,43 @@ function mapToProductData(db: DBProduct): ProductData {
     category: db.category || "Food Product",
     healthScore: db.health_score,
     healthSummary: db.health_summary || "",
+    brand: db.brand || "",
+    offVerified: db.off_verified || false,
+    nutritionSource: (db.nutrition_source as 'open_food_facts' | 'ai_estimated') || "ai_estimated",
+    novaGroup: db.nova_group || null,
+    nutriscoreGrade: db.nutriscore_grade || "",
+    keyConcerns: db.key_concerns || [],
+    consumptionAdvice: db.consumption_advice || "",
+    thresholdWarnings: (db.threshold_warnings || []).map((w) => ({
+      nutrient: w.nutrient,
+      value: w.value,
+      unit: w.unit,
+      level: w.level,
+      message: w.message,
+      whoGuideline: w.who_guideline,
+      percentOfDaily: w.percent_of_daily,
+    })),
     ingredients: (db.ingredients || []).map((i) => ({
       name: i.name,
       function: i.function,
       healthEffect: i.health_effect,
       rating: i.rating,
       affectedOrgans: i.affected_organs || [],
+      concernLevel: i.concern_level || "none",
+      dailyLimitContext: i.daily_limit_context || "",
     })),
     nutrition: {
       calories: db.nutrition_facts?.calories || 0,
       fat: db.nutrition_facts?.fat || 0,
+      saturatedFat: db.nutrition_facts?.saturated_fat || 0,
+      transFat: db.nutrition_facts?.trans_fat || 0,
       protein: db.nutrition_facts?.protein || 0,
       carbs: db.nutrition_facts?.carbohydrates || 0,
       sugar: db.nutrition_facts?.sugar || 0,
+      addedSugar: db.nutrition_facts?.added_sugar || 0,
       salt: db.nutrition_facts?.salt || 0,
+      sodium: db.nutrition_facts?.sodium || 0,
+      fiber: db.nutrition_facts?.fiber || 0,
     },
     additives: (db.additives || []).map((a) => ({
       code: a.code,
@@ -68,6 +118,7 @@ function mapToProductData(db: DBProduct): ProductData {
       name: alt.name,
       healthScore: alt.health_score,
       reason: alt.reason,
+      whatIsBetter: alt.what_is_better || [],
     })),
   };
 }

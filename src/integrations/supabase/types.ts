@@ -18,7 +18,9 @@ export type Database = {
         Row: {
           additives: Json | null
           alternatives: Json | null
+          barcode: string | null
           body_effects: Json | null
+          brand: string | null
           category: string | null
           created_at: string | null
           health_rating: string | null
@@ -27,15 +29,22 @@ export type Database = {
           id: string
           ingredients: Json | null
           nutrition_facts: Json | null
+          nutrition_source: string | null
+          off_id: string | null
+          off_verified: boolean | null
           product_name: string
           product_name_normalized: string
+          raw_ingredients_text: string | null
           search_count: number | null
+          threshold_warnings: Json | null
           updated_at: string | null
         }
         Insert: {
           additives?: Json | null
           alternatives?: Json | null
+          barcode?: string | null
           body_effects?: Json | null
+          brand?: string | null
           category?: string | null
           created_at?: string | null
           health_rating?: string | null
@@ -44,15 +53,22 @@ export type Database = {
           id?: string
           ingredients?: Json | null
           nutrition_facts?: Json | null
+          nutrition_source?: string | null
+          off_id?: string | null
+          off_verified?: boolean | null
           product_name: string
           product_name_normalized: string
+          raw_ingredients_text?: string | null
           search_count?: number | null
+          threshold_warnings?: Json | null
           updated_at?: string | null
         }
         Update: {
           additives?: Json | null
           alternatives?: Json | null
+          barcode?: string | null
           body_effects?: Json | null
+          brand?: string | null
           category?: string | null
           created_at?: string | null
           health_rating?: string | null
@@ -61,9 +77,14 @@ export type Database = {
           id?: string
           ingredients?: Json | null
           nutrition_facts?: Json | null
+          nutrition_source?: string | null
+          off_id?: string | null
+          off_verified?: boolean | null
           product_name?: string
           product_name_normalized?: string
+          raw_ingredients_text?: string | null
           search_count?: number | null
+          threshold_warnings?: Json | null
           updated_at?: string | null
         }
         Relationships: []

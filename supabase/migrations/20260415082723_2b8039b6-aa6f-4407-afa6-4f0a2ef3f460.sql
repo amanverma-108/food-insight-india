@@ -1,0 +1,10 @@
+ALTER TABLE products
+  ADD COLUMN IF NOT EXISTS nutrition_source TEXT DEFAULT 'ai_estimated',
+  ADD COLUMN IF NOT EXISTS off_id TEXT,
+  ADD COLUMN IF NOT EXISTS off_verified BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS barcode TEXT,
+  ADD COLUMN IF NOT EXISTS brand TEXT,
+  ADD COLUMN IF NOT EXISTS threshold_warnings JSONB DEFAULT '[]',
+  ADD COLUMN IF NOT EXISTS raw_ingredients_text TEXT;
+
+CREATE INDEX IF NOT EXISTS idx_barcode ON products(barcode);

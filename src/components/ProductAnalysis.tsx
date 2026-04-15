@@ -1,29 +1,54 @@
 import { useState } from "react";
-import { Star, Heart, AlertTriangle, Info, ChevronDown, ChevronUp, ChevronLeft, ArrowUp } from "lucide-react";
+import { Star, Heart, AlertTriangle, Info, ChevronDown, ChevronUp, ChevronLeft, ArrowUp, ShieldCheck, ShieldAlert } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BodyVisualization } from "./BodyVisualization";
 import { IngredientTable } from "./IngredientTable";
 
+interface ThresholdWarningData {
+  nutrient: string;
+  value: number;
+  unit: string;
+  level: 'high' | 'very_high' | 'low';
+  message: string;
+  whoGuideline: string;
+  percentOfDaily: number;
+}
+
 interface ProductData {
   name: string;
   category: string;
   healthScore: number;
+  brand?: string;
+  offVerified?: boolean;
+  nutritionSource?: 'open_food_facts' | 'ai_estimated';
+  novaGroup?: number | null;
+  nutriscoreGrade?: string;
+  keyConcerns?: string[];
+  consumptionAdvice?: string;
+  thresholdWarnings?: ThresholdWarningData[];
   ingredients: Array<{
     name: string;
     function: string;
     healthEffect: string;
     rating: 'beneficial' | 'neutral' | 'harmful';
     affectedOrgans: string[];
+    concernLevel?: string;
+    dailyLimitContext?: string;
   }>;
   nutrition: {
     calories: number;
     fat: number;
+    saturatedFat?: number;
+    transFat?: number;
     protein: number;
     carbs: number;
     sugar: number;
+    addedSugar?: number;
     salt: number;
+    sodium?: number;
+    fiber?: number;
   };
   additives: Array<{
     code: string;
@@ -36,6 +61,7 @@ interface ProductData {
     name: string;
     healthScore: number;
     reason: string;
+    whatIsBetter?: string[];
   }>;
 }
 
@@ -46,12 +72,16 @@ interface ProductAnalysisProps {
 }
 
 const NUTRITION_META: Record<string, { label: string; unit: string; dailyMax: number; barColor: string }> = {
-  calories: { label: "Calories", unit: "kcal", dailyMax: 2000, barColor: "bg-[hsl(0,84%,60%)]" },
-  fat: { label: "Fat", unit: "g", dailyMax: 70, barColor: "bg-[hsl(0,84%,60%)]" },
-  protein: { label: "Protein", unit: "g", dailyMax: 50, barColor: "bg-[hsl(145,80%,42%)]" },
-  carbs: { label: "Carbohydrates", unit: "g", dailyMax: 300, barColor: "bg-[hsl(0,84%,60%)]" },
-  sugar: { label: "Sugar", unit: "g", dailyMax: 30, barColor: "bg-[hsl(0,84%,60%)]" },
-  salt: { label: "Salt", unit: "mg", dailyMax: 2300, barColor: "bg-[hsl(45,95%,60%)]" },
+  calories:     { label: "Calories",       unit: "kcal", dailyMax: 2000, barColor: "bg-[hsl(0,84%,60%)]" },
+  fat:          { label: "Total Fat",      unit: "g",    dailyMax: 70,   barColor: "bg-[hsl(0,84%,60%)]" },
+  saturatedFat: { label: "Saturated Fat",  unit: "g",    dailyMax: 20,   barColor: "bg-[hsl(0,84%,60%)]" },
+  transFat:     { label: "Trans Fat",      unit: "g",    dailyMax: 2,    barColor: "bg-[hsl(0,84%,60%)]" },
+  carbs:        { label: "Carbohydrates",  unit: "g",    dailyMax: 300,  barColor: "bg-[hsl(45,95%,60%)]" },
+  sugar:        { label: "Total Sugars",   unit: "g",    dailyMax: 50,   barColor: "bg-[hsl(0,84%,60%)]" },
+  addedSugar:   { label: "Added Sugars",   unit: "g",    dailyMax: 25,   barColor: "bg-[hsl(0,84%,60%)]" },
+  protein:      { label: "Protein",        unit: "g",    dailyMax: 50,   barColor: "bg-[hsl(145,80%,42%)]" },
+  sodium:       { label: "Sodium",         unit: "mg",   dailyMax: 2000, barColor: "bg-[hsl(45,95%,60%)]" },
+  fiber:        { label: "Dietary Fiber",  unit: "g",    dailyMax: 25,   barColor: "bg-[hsl(145,80%,42%)]" },
 };
 
 const getHealthScoreColor = (score: number) => {
@@ -98,27 +128,45 @@ export const ProductAnalysis = ({ product, onBack, onAlternativeClick }: Product
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev =>
-      prev.includes(section)
-        ? prev.filter(s => s !== section)
-        : [...prev, section]
+      prev.includes(section) ? prev.filter(s => s !== section) : [...prev, section]
     );
   };
+
+  // Build nutrition entries for display
+  const nutritionEntries = Object.entries(NUTRITION_META)
+    .map(([key, meta]) => {
+      const value = (product.nutrition as any)[key];
+      if (value === undefined || value === null) return null;
+      return { key, value, meta };
+    })
+    .filter(Boolean) as Array<{ key: string; value: number; meta: typeof NUTRITION_META[string] }>;
 
   return (
     <div className="w-full max-w-6xl mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <Button
-            variant="outline"
-            onClick={onBack}
-            className="mb-4 rounded-full border px-5 py-2 hover:bg-muted transition-colors"
-          >
+          <Button variant="outline" onClick={onBack} className="mb-4 rounded-full border px-5 py-2 hover:bg-muted transition-colors">
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back to Search
           </Button>
           <h1 className="text-3xl font-bold text-foreground">{product.name}</h1>
-          <Badge variant="secondary" className="mt-2">{product.category}</Badge>
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            <Badge variant="secondary">{product.category}</Badge>
+            {product.novaGroup && (
+              <Badge variant="outline" className={
+                product.novaGroup >= 4 ? "bg-[#fef2f2] text-[#991b1b] border-[#fecaca]" :
+                product.novaGroup === 3 ? "bg-[#fffbeb] text-[#92400e] border-[#fde68a]" :
+                "bg-[#f0fdf4] text-[#166534] border-[#bbf7d0]"
+              }>
+                NOVA {product.novaGroup} · {
+                  product.novaGroup === 1 ? 'Unprocessed' :
+                  product.novaGroup === 2 ? 'Processed ingredient' :
+                  product.novaGroup === 3 ? 'Processed food' : 'Ultra-processed'
+                }
+              </Badge>
+            )}
+          </div>
         </div>
 
         <Card className={`${getHealthScoreBg(product.healthScore)} text-white border-0 shadow-health`}>
@@ -162,30 +210,98 @@ export const ProductAnalysis = ({ product, onBack, onAlternativeClick }: Product
                 <Heart className="h-5 w-5 text-primary" />
                 Health Analysis Summary
               </CardTitle>
-              <CardDescription className="text-xs">AI-generated based on ingredient analysis</CardDescription>
+              <CardDescription className="text-xs">
+                {product.offVerified ? "Based on verified product label data" : "AI-generated based on ingredient analysis"}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground leading-relaxed">{product.healthSummary}</p>
+              {/* Key concerns */}
+              {product.keyConcerns && product.keyConcerns.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-3">
+                  {product.keyConcerns.map((concern, i) => (
+                    <span key={i} className="text-[11px] px-2.5 py-1 bg-[#fef2f2] text-[#991b1b] rounded-full border border-[#fecaca]">
+                      {concern}
+                    </span>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
+
+          {/* Threshold Warnings */}
+          {product.thresholdWarnings && product.thresholdWarnings.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-[#e05a3a]">
+                  <AlertTriangle className="h-5 w-5" />
+                  Nutritional Concerns
+                </CardTitle>
+                <CardDescription className="text-xs">Based on WHO / FSSAI daily safe limits</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {product.thresholdWarnings.map((w, i) => (
+                  <div
+                    key={i}
+                    className={`rounded-lg p-3 border-l-4 ${
+                      w.level === 'very_high' ? 'bg-[#fef2f2] border-l-[#e05a3a]' :
+                      w.level === 'high' ? 'bg-[#fffbeb] border-l-[#e8a020]' :
+                      'bg-[#eff6ff] border-l-[#378add]'
+                    }`}
+                  >
+                    <div className="flex justify-between items-center mb-1">
+                      <span className={`text-sm font-medium ${
+                        w.level === 'very_high' ? 'text-[#991b1b]' :
+                        w.level === 'high' ? 'text-[#92400e]' : 'text-[#1e40af]'
+                      }`}>
+                        {w.nutrient}
+                        <span className="ml-2 text-xs font-normal opacity-80">
+                          {w.value}{w.unit} per 100g
+                        </span>
+                      </span>
+                      <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
+                        w.level === 'very_high' ? 'bg-[#fee2e2] text-[#991b1b]' : 'bg-[#fef3c7] text-[#92400e]'
+                      }`}>
+                        {w.percentOfDaily}% of daily limit
+                      </span>
+                    </div>
+                    <p className={`text-xs leading-relaxed ${
+                      w.level === 'very_high' ? 'text-[#7f1d1d]' : 'text-[#78350f]'
+                    }`}>
+                      {w.message}
+                    </p>
+                    <p className="text-[11px] mt-1 text-muted-foreground italic">{w.whoGuideline}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Nutrition Facts */}
           <Card>
             <CardHeader className="cursor-pointer" onClick={() => toggleSection('nutrition')}>
               <CardTitle className="flex items-center justify-between">
-                <span>
-                  Nutrition Facts{" "}
-                  <span className="text-xs font-normal text-muted-foreground ml-2">per 100 g</span>
-                </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span>Nutrition Facts</span>
+                  <span className="text-xs font-normal text-muted-foreground">per 100 g</span>
+                  {product.offVerified ? (
+                    <Badge variant="outline" className="bg-[#f0fdf4] text-[#166534] border-[#bbf7d0] text-[10px]">
+                      <ShieldCheck className="h-3 w-3 mr-1" /> Verified from label
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-[#fffbeb] text-[#92400e] border-[#fde68a] text-[10px]">
+                      <ShieldAlert className="h-3 w-3 mr-1" /> AI estimated
+                    </Badge>
+                  )}
+                </div>
                 {expandedSections.includes('nutrition') ? <ChevronUp /> : <ChevronDown />}
               </CardTitle>
               <CardDescription className="text-xs">Compared to recommended daily intake</CardDescription>
             </CardHeader>
             {expandedSections.includes('nutrition') && (
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                  {Object.entries(product.nutrition).map(([key, value]) => {
-                    const meta = NUTRITION_META[key];
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  {nutritionEntries.map(({ key, value, meta }) => {
                     const pct = Math.min((value / meta.dailyMax) * 100, 100);
                     return (
                       <div key={key} className="text-center p-3 bg-muted rounded-lg overflow-hidden relative">
@@ -197,6 +313,7 @@ export const ProductAnalysis = ({ product, onBack, onAlternativeClick }: Product
                         <div className="mt-2 h-1 w-full rounded-full bg-border overflow-hidden">
                           <div className={`h-full rounded-full ${meta.barColor}`} style={{ width: `${pct}%` }} />
                         </div>
+                        <div className="text-[10px] text-muted-foreground mt-1">{Math.round(pct)}% daily</div>
                       </div>
                     );
                   })}
@@ -238,6 +355,19 @@ export const ProductAnalysis = ({ product, onBack, onAlternativeClick }: Product
               </CardContent>
             )}
           </Card>
+
+          {/* Consumption Advice */}
+          {product.consumptionAdvice && (
+            <Card className="bg-[#f0fdf4] border-[#bbf7d0]">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-base">💡</span>
+                  <span className="text-sm font-medium text-[#166534]">Consumption Advice</span>
+                </div>
+                <p className="text-sm text-[#14532d] leading-relaxed">{product.consumptionAdvice}</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
 
@@ -263,9 +393,19 @@ export const ProductAnalysis = ({ product, onBack, onAlternativeClick }: Product
                 onClick={() => onAlternativeClick?.(alt.name)}
               >
                 <CardContent className="p-4 flex items-center justify-between relative">
-                  <div className="pr-8">
+                  <div className="pr-8 flex-1">
                     <div className="font-semibold text-lg">{alt.name}</div>
                     <div className="text-sm text-muted-foreground">{alt.reason}</div>
+                    {/* What is better */}
+                    {alt.whatIsBetter && alt.whatIsBetter.length > 0 && (
+                      <div className="mt-2 space-y-0.5">
+                        {alt.whatIsBetter.map((item, j) => (
+                          <div key={j} className="text-xs text-[#166534] flex items-center gap-1">
+                            <ArrowUp className="h-3 w-3 text-primary" /> {item}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <span className="inline-block mt-2 text-[10px] text-primary opacity-70">
                       Tap to analyse →
                     </span>
